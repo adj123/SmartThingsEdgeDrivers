@@ -17,6 +17,7 @@ local ZigbeeDriver = require "st.zigbee"
 local defaults = require "st.zigbee.defaults"
 local clusters = require "st.zigbee.zcl.clusters"
 local configurationMap = require "configurations"
+local log = require "log"
 local SimpleMetering = clusters.SimpleMetering
 local ElectricalMeasurement = clusters.ElectricalMeasurement
 
@@ -67,15 +68,39 @@ local device_init = function(self, device)
   end
 end
 
+local levelPresets = {
+  [1] = 11,
+  [2] = 12,
+  [3] = 14,
+  [4] = 15,
+  [5] = 20
+}
+
+local function handle_set_level(driver, device, cmd)
+  log.info("STARTING SET LEVEL")
+  local level = math.floor((levelPresets[cmd.args.level] or 0) / 100.0 * 254)
+  device:send(clusters.Level.commands.MoveToLevelWithOnOff(device, level, cmd.args.rate or 0xFFFF))
+
+  device.thread:call_with_delay(2, function(d)
+    device:refresh()
+  end)
+end
+
 local zigbee_switch_driver_template = {
   supported_capabilities = {
     capabilities.switch,
     capabilities.switchLevel,
+    capabilities['greenoption21184.switchLevelPresets'],
     capabilities.colorControl,
     capabilities.colorTemperature,
     capabilities.powerMeter,
     capabilities.energyMeter,
     capabilities.motionSensor
+  },
+  capability_handlers = {
+    [capabilities['greenoption21184.switchLevelPresets'].ID] = {
+      [capabilities['greenoption21184.switchLevelPresets'].commands.setLevel.NAME] = handle_set_level
+    }
   },
   sub_drivers = {
     require("ezex"),

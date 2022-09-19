@@ -1001,6 +1001,11 @@ zigbeeManufacturer:
     manufacturer: LEDVANCE
     model: BR30 RGBW
     deviceProfileName: rgbw-bulb
+  - id: "Candeo switch"
+    deviceLabel: Candeo light switch
+    manufacturer: Candeo
+    model: HK-DIM-A
+    deviceProfileName: switch-level
   - id: "LEDVANCE/RT RGBW"
     deviceLabel: SYLVANIA Light
     manufacturer: LEDVANCE
